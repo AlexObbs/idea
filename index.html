@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Signpost Markers Map</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map {
+            height: 600px;
+        }
+
+        .signpost {
+            position: relative;
+            text-align: center;
+        }
+
+        .signpost-stick {
+            width: 4px;
+            height: 30px;
+            background-color: brown;
+            position: absolute;
+            bottom: -30px;
+            /* Adjust to position the stick correctly */
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .signpost-text {
+            border-radius: 5px;
+            background-color: orange;
+            border: 1px solid black;
+            padding: 2px 5px;
+            display: inline-block;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        // Initialize the map and set its view to a chosen geographical point and zoom level
+        var map = L.map('map', {
+            center: [20, 0], // Center of the map (latitude, longitude)
+            zoom: 1,        // Initial zoom level
+            worldCopyJump: true // Prevents map from wrapping around horizontally
+        });
+
+        // Add Mapbox tile layer to the map with terrain
+        L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v11/tiles/{z}/{x}/{y}?access_token=pk.eyJ1Ijoib2JieWJsYXEiLCJhIjoiY2x3dDQyaXgzMDI2ZzJpcjFwa2VneW1xMSJ9.OW3xBMYEURvFl7z4hHGuJA', {
+            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+            maxZoom: 18
+        }).addTo(map);
+
+        // Add markers with popups
+        var locations = [
+            { name: "Skeleton Coast", coords: [-21.6073, 14.5373], article: "https://en.wikipedia.org/wiki/Skeleton_Coast" },
+            { name: "Gustave (Crocodile)", coords: [-6.2556, 29.5108], article: "https://en.wikipedia.org/wiki/Gustave_(crocodile)" },
+            { name: "Xiaozhai Tiankeng", coords: [30.7505, 109.4701], article: "https://en.wikipedia.org/wiki/Xiaozhai_Tiankeng" },
+            { name: "Spacecraft cemetery", coords: [-48.89, -123.39], article: "https://en.wikipedia.org/wiki/Spacecraft_cemetery" },
+            { name: "Polar Bears", coords: [75.1667, 57.8333], article: "https://en.wikipedia.org/wiki/2019_mass_invasion_of_Russian_polar_bears" }
+        ];
+
+        // Function to create a marker and bind a popup
+        function addMarker(location) {
+            var signpostIcon = L.divIcon({
+                className: 'signpost-icon',
+                html: '<div class="signpost">' +
+                    '<div class="signpost-text">' + location.name + '</div>' +
+                    '<div class="signpost-stick"></div>' +
+                    '</div>',
+                iconSize: [130, 130], // Adjusted size to fit the signpost and text
+                iconAnchor: [65, 60] // Adjust to position the signpost correctly
+            });
+
+            var marker = L.marker(location.coords, { icon: signpostIcon }).addTo(map);
+            marker.bindPopup('<b>' + location.name + '</b><br><a href="' + location.article + '" target="_blank">Read about ' + location.name + '</a>');
+        }
+
+        // Loop through locations and add markers
+        locations.forEach(function (location) {
+            addMarker(location);
+        });
+
+        // Add event listener to hide small country markers until zoomed in
+        map.on('zoomend', function () {
+            var zoomLevel = map.getZoom();
+            locations.forEach(function (location) {
+                if (zoomLevel < 5 && location.name === "Zurich") {
+                    map.removeLayer(L.marker(location.coords));
+                } else {
+                    addMarker(location);
+                }
+            });
+        });
+
+        // Initial zoom check
+        var zoomLevel = map.getZoom();
+        locations.forEach(function (location) {
+            if (zoomLevel < 5 && location.name === "Zurich") {
+                map.removeLayer(L.marker(location.coords));
+            } else {
+                addMarker(location);
+            }
+        });
+    </script>
+</body>
+
+</html>
